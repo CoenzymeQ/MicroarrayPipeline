@@ -9,14 +9,20 @@ require(lumi)
 require(limma)
 require(GEOquery)
 
+#need GSEnum
+#need design_path
+
 GSE <- getGEO('GSE30622', destdir=".",getGPL = F)
 lumi.N.Q <- lumiExpresso(GSE[[1]])
-exprSet <- exprs(lumi.N.Q)[,c("GSM759649","GSM759650","GSM759653","GSM759654")]
+
+design_mat = read.table(design_path, sep="\t", header=F)
+gsm = as.vector(design_mat[,1])
+condition = as.vector(design_mat[,2])
+
+exprSet <- exprs(lumi.N.Q)[,gsm]
 saveRDS(exprSet,file = 'expr.rds')
 ID <- IlluminaID2nuID(rownames(exprSet),species = "Human")
 rownames(exprSet) <- ID[,4]
-
-#rownames(exprSet) <- sapply(sapply(rownames(exprSet),strsplit,"[.]"),head,1)
 
 grouplist <- c('ctrl','ctrl','treat','treat')
 design <- model.matrix(~0+factor(grouplist))
