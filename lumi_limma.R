@@ -17,19 +17,18 @@ lumi.N.Q <- lumiExpresso(GSE[[1]])
 
 design_mat = read.table(design_path, sep="\t", header=F)
 gsm = as.vector(design_mat[,1])
-condition = as.vector(design_mat[,2])
+grouplist = as.vector(design_mat[,2])
 
 exprSet <- exprs(lumi.N.Q)[,gsm]
 saveRDS(exprSet,file = 'expr.rds')
 ID <- IlluminaID2nuID(rownames(exprSet),species = "Human")
 rownames(exprSet) <- ID[,4]
 
-grouplist <- c('ctrl','ctrl','treat','treat')
 design <- model.matrix(~0+factor(grouplist))
 colnames(design) = levels(factor(grouplist))
 rownames(design) = colnames(exprSet)
 fit <- lmFit(exprSet,design)
-contrast.matrix <- makeContrasts(ctrl - treat, levels = design)
+contrast.matrix <- makeContrasts(paste0(unique(grouplist),collapse = '-'), levels = design)
 fit <- contrasts.fit(fit, contrast.matrix)
 fit <- eBayes(fit)
 output <- topTable(fit, number = Inf, lfc = log2(1.5), p.value = 0.05)
