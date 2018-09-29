@@ -9,8 +9,8 @@ require(lumi)
 require(limma)
 require(GEOquery)
 
-GSE30622 <- getGEO('GSE30622', destdir=".",getGPL = F)
-lumi.N.Q <- lumiExpresso(GSE30622[[1]])
+GSE <- getGEO('GSE30622', destdir=".",getGPL = F)
+lumi.N.Q <- lumiExpresso(GSE[[1]])
 exprSet <- exprs(lumi.N.Q)[,c("GSM759649","GSM759650","GSM759653","GSM759654")]
 saveRDS(exprSet,file = 'expr.rds')
 ID <- IlluminaID2nuID(rownames(exprSet),species = "Human")
