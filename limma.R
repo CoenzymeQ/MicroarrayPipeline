@@ -1,14 +1,23 @@
-# wget ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE30nnn/GSE30622/suppl/Downloads/GSE30622_non_normalized_v4.txt.gz
-library(lumi)
-library(limma)
-library(GEOquery)
+required_Packages = c("lumi", "limma", "GEOquery")
+
+if(!all(required_Packages %in% installed.packages())){
+	source("https://bioconductor.org/biocLite.R")
+	biocLite(setdiff(required_Packages, installed.packages()))
+}
+
+require(lumi)
+require(limma)
+require(GEOquery)
+
 GSE30622 <- getGEO('GSE30622', destdir=".",getGPL = F)
 lumi.N.Q <- lumiExpresso(GSE30622[[1]])
 exprSet <- exprs(lumi.N.Q)[,c("GSM759649","GSM759650","GSM759653","GSM759654")]
 saveRDS(exprSet,file = 'expr.rds')
 ID <- IlluminaID2nuID(rownames(exprSet),species = "Human")
 rownames(exprSet) <- ID[,4]
+
 #rownames(exprSet) <- sapply(sapply(rownames(exprSet),strsplit,"[.]"),head,1)
+
 grouplist <- c('ctrl','ctrl','treat','treat')
 design <- model.matrix(~0+factor(grouplist))
 colnames(design) = levels(factor(grouplist))
