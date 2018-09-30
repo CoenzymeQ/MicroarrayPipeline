@@ -20,7 +20,6 @@ gsm = as.vector(design_mat[,1])
 grouplist = as.vector(design_mat[,2])
 
 exprSet <- exprs(lumi.N.Q)[,gsm]
-saveRDS(exprSet,file = 'expr.rds')
 ID <- IlluminaID2nuID(rownames(exprSet),species = "Human")
 rownames(exprSet) <- ID[,4]
 
