@@ -1,19 +1,22 @@
-required_Packages = c("lumi", "limma", "GEOquery")
+required_Packages = c("lumi", "limma")
 
 if(!all(required_Packages %in% installed.packages())){
-	source("https://bioconductor.org/biocLite.R")
-	biocLite(setdiff(required_Packages, installed.packages()))
+  source("https://bioconductor.org/biocLite.R")
+  biocLite(setdiff(required_Packages, installed.packages()))
 }
 
 require(lumi)
 require(limma)
-require(GEOquery)
 
 #need GSEnum
+GSEnum <- 'GSE30622'
 #need design_path
+design_path <- ''
+file_path <- ''
 
-GSE <- getGEO('GSE30622', destdir=".",getGPL = F)
-lumi.N.Q <- lumiExpresso(GSE[[1]])
+fileName <- file_path
+x.lumi <- lumiR.batch(fileName)
+lumi.N.Q <- lumiExpresso(x.lumi[[1]])
 
 design_mat = read.table(design_path, sep="\t", header=F)
 gsm = as.vector(design_mat[,1])
