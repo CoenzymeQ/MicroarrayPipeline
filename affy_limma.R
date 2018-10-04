@@ -1,20 +1,20 @@
-required_Packages = c("affy", "limma","hgu133plus2.db","sva")
+required_Packages = c("affy", "limma","hgu133plus2.db","sva","org.Hs.eg.db")
 
 if(!all(required_Packages %in% installed.packages())){
   source("https://bioconductor.org/biocLite.R")
   biocLite(setdiff(required_Packages, installed.packages()))
 }
 
-library(affy)
-library(limma)
-library(hgu133plus2.db)
-library(sva)
-
+require(affy)
+require(limma)
+require(org.Hs.eg.db)
+require(sva)
+require(hgu133plus2hsrefseqcdf)
 
 rm(list = ls())
 #need GSEnum
-GSEnum <- 'GSE51447'
-designname <- 'A2_GSE51447_CREB1_KD.txt'
+GSEnum <- 'GSE12056'
+designname <- 'A2_GSE12056_CREB1_KO.txt'
 #need design_path
 design_path <- paste0('microarray/design_matrix/',designname)
 #need data_path
@@ -30,9 +30,10 @@ grouplist = as.vector(design_mat[,2])
 # read files in and process data
 celFiles <- list.celfiles(path = file_path, full.names = T)
 data.affy <- ReadAffy(filenames = celFiles)
+data.affy@cdfName = "hgu133plus2hsrefseqcdf"
 data.rma <- rma(data.affy)
 data.expr <- exprs(data.rma)
-colnames(data.expr) <- sapply(colnames(data.expr),substr,1,10,USE.NAMES = F)
+colnames(data.expr) <- sapply(sapply(colnames(data.expr),strsplit,'_',USE.NAMES = F),head,1,USE.NAMES = F)
 
 # batcheffect
 data.affy@protocolData@data
@@ -54,14 +55,14 @@ fit <- lmFit(exprSet,design)
 contrast.matrix <- makeContrasts(paste0(unique(grouplist),collapse = '-'), levels = design)
 fit <- contrasts.fit(fit, contrast.matrix)
 fit <- eBayes(fit)
-output <- topTable(fit, number = Inf, lfc = log2(1.5), p.value = 0.05)
+tempoutput <- topTable(fit, number = Inf, lfc = 0, p.value = 1)
 
 #Get gene symbol
-Annot <- data.frame(SYMBOL=sapply(contents(hgu133plus2SYMBOL), paste, collapse=", "))
-cpltedata <- merge(output, Annot, by.x=0, by.y=0, all = TRUE)
-output <- na.omit(cpltedata)
-output <- output[order(output$adj.P.Val),]
+rownames(tempoutput) <- sapply(sapply(rownames(tempoutput),strsplit,'[.]',USE.NAMES = F),head,1,USE.NAMES = F)
+tempoutput$SYMBOL <- select(org.Hs.eg.db, keys=rownames(tempoutput), columns="SYMBOL", keytype="REFSEQ")[,2]
+output <- na.omit(tempoutput[!duplicated(tempoutput$SYMBOL),])
+rownames(output) <- output$SYMBOL
+output <- output[,-7]
+colnames(output) <- c("log2FoldChange","AveExpr","t","P.Value","padj","B")
+
 write.table(output,result_path,sep = '\t',quote = F)
-
-
-
