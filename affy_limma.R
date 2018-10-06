@@ -12,6 +12,7 @@ require(sva)
 require(hgu133plus2hsrefseqcdf)
 
 rm(list = ls())
+
 #need GSEnum
 GSEnum <- 'GSE12056'
 designname <- 'A2_GSE12056_CREB1_KO.txt'
@@ -21,6 +22,11 @@ design_path <- paste0('microarray/design_matrix/',designname)
 file_path <- paste0('microarray/data/',GSEnum,'/')
 #need result_path
 result_path <- paste0('microarray/result/',designname)
+
+args = commandArgs(T)
+file_path = args[1] #data file path
+design_path = args[2] #design matrix path
+result_path = args[3] #result matrix path
 
 # read design
 design_mat = read.table(design_path, sep="\t", header=F)
