@@ -1,4 +1,4 @@
-required_Packages = c("affy", "limma","hgu133plus2.db","sva","org.Hs.eg.db")
+required_Packages = c("affy", "limma","hgu133plus2.db","sva","ggplot2")
 
 if(!all(required_Packages %in% installed.packages())){
   source("https://bioconductor.org/biocLite.R")
@@ -7,9 +7,9 @@ if(!all(required_Packages %in% installed.packages())){
 
 require(affy)
 require(limma)
-require(org.Hs.eg.db)
 require(sva)
 require(hgu133plus2hsrefseqcdf)
+require(ggplot2)
 
 rm(list = ls())
 
@@ -23,10 +23,10 @@ file_path <- paste0('microarray/data/',GSEnum,'/')
 #need result_path
 result_path <- paste0('microarray/result/',designname)
 
-args = commandArgs(T)
-file_path = args[1] #data file path
-design_path = args[2] #design matrix path
-result_path = args[3] #result matrix path
+# args = commandArgs(T)
+# file_path = args[1] #data file path
+# design_path = args[2] #design matrix path
+# result_path = args[3] #result matrix path
 
 # read design
 design_mat = read.table(design_path, sep="\t", header=F)
@@ -58,7 +58,7 @@ design <- model.matrix(~0+factor(grouplist))
 colnames(design) = levels(factor(grouplist))
 rownames(design) = colnames(exprSet)
 fit <- lmFit(exprSet,design)
-contrast.matrix <- makeContrasts(paste0(unique(grouplist),collapse = '-'), levels = design)
+contrast.matrix <- makeContrasts(paste0(rev(unique(grouplist)),collapse = '-'), levels = design)
 fit <- contrasts.fit(fit, contrast.matrix)
 fit <- eBayes(fit)
 tempoutput <- topTable(fit, number = Inf, lfc = 0, p.value = 1)
@@ -71,4 +71,13 @@ rownames(output) <- output$SYMBOL
 output <- output[,-7]
 colnames(output) <- c("log2FoldChange","AveExpr","t","P.Value","padj","B")
 
+sigout <- subset(output, abs(log2FoldChange) > 1 & padj < 0.05)
+p <- ggplot(output,aes(log2FoldChange,-log10(padj))) + 
+geom_point(aes(color=ifelse((log2FoldChange > 1 | log2FoldChange < -1) & padj < 0.05, "sign","non-sign")), cex = 1, alpha = 0.3) + 
+scale_colour_manual("significance", values = c("steelblue","red")) +
+labs(title = designname, x = "log2 Fold Change", y = "-log10 adj.P.Val")+
+geom_text(data = sigout, aes(x = log2FoldChange, y=-log10(padj), label = rownames(sigout)), cex = 2, vjust = "inward", hjust = "inward")
+ggsave(paste0(result_path,".png"), p, width = 7, height = 7)
+
 write.table(output,result_path,sep = '\t',quote = F)
+
