@@ -1,4 +1,4 @@
-required_Packages = c("affy", "limma","hgu133plus2.db","sva","ggplot2")
+required_Packages = c("affy", "limma","hgu133plus2hsrefseqcdf","sva","ggplot2")
 
 if(!all(required_Packages %in% installed.packages())){
   source("https://bioconductor.org/biocLite.R")
