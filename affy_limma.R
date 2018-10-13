@@ -36,7 +36,6 @@ pval_setting = args[5] #setting adj.p.val
 FC_setting <- as.numeric(FC_setting)
 logFC_setting <- log2(FC_setting)
 
-
 dir.create(result_path)
 
 # read design
@@ -94,8 +93,8 @@ write.table(downR, paste0(result_path,'/Downregulated_gene.txt'),sep = '\t',quot
 
 volca <- ggplot(output,aes(log2FoldChange,-log10(padj))) + 
   geom_point(aes(color=ifelse((log2FoldChange > logFC_setting | log2FoldChange < -logFC_setting) & padj < pval_setting, "sign","non-sign")), cex = 1, alpha = 0.3) + 
-  scale_colour_manual("significance", values = c("steelblue","red")) +
-  labs(title = 'Volcano_plot', x = "log2 Fold Change", y = "-log10 adj.P.Val")+
+  scale_colour_manual("Significance", values = c("steelblue","red")) +
+  labs(title = 'Volcano plot', x = "log2 Fold Change", y = "-log10 adj.P.Val")+
   geom_text(data = sigout, aes(x = log2FoldChange, y=-log10(padj), label = rownames(sigout)), cex = 1, vjust = "inward", hjust = "inward")
 ggsave(paste0(result_path,"/Volcano_plot.png"), volca, width = 7, height = 7)
 
