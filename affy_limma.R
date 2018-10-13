@@ -1,4 +1,4 @@
-required_Packages = c("affy", "limma","hgu133plus2hsrefseqcdf","sva","ggplot2")
+required_Packages = c("affy", "limma","sva","org.Hs.eg.db","ggplot2")
 
 if(!all(required_Packages %in% installed.packages())){
   source("https://bioconductor.org/biocLite.R")
@@ -7,26 +7,37 @@ if(!all(required_Packages %in% installed.packages())){
 
 require(affy)
 require(limma)
+require(hgu133ahsrefseqcdf)
+require(org.Hs.eg.db)
 require(sva)
-require(hgu133plus2hsrefseqcdf)
 require(ggplot2)
 
 rm(list = ls())
 
-#need GSEnum
-GSEnum <- 'GSE12056'
-designname <- 'A2_GSE12056_CREB1_KO.txt'
-#need design_path
-design_path <- paste0('microarray/design_matrix/',designname)
-#need data_path
-file_path <- paste0('microarray/data/',GSEnum,'/')
-#need result_path
-result_path <- paste0('microarray/result/',designname)
+# need GSEnum
+# GSEnum <- 'GSE12056'
+# designname <- 'A2_GSE12056_CREB1_KO.txt'
+# #need design_path
+# design_path <- paste0('microarray/design_matrix/',designname)
+# #need data_path
+# file_path <- paste0('microarray/data/',GSEnum,'/')
+# #need result_path
+# result_path <- paste0('microarray/result/GSE12056/')
+# logFC_setting = log2(1) #setting log2 fold change
+# pval_setting = 0.1 #setting adj.p.val
+# cdf_name = 'hgu133ahsrefseqcdf'
 
-# args = commandArgs(T)
-# file_path = args[1] #data file path
-# design_path = args[2] #design matrix path
-# result_path = args[3] #result matrix path
+args = commandArgs(T)
+file_path = args[1] #data file path
+design_path = args[2] #design matrix path
+result_path = args[3] #result path
+FC_setting = args[4] #setting fold change
+pval_setting = args[5] #setting adj.p.val
+FC_setting <- as.numeric(FC_setting)
+logFC_setting <- log2(FC_setting)
+
+
+dir.create(result_path)
 
 # read design
 design_mat = read.table(design_path, sep="\t", header=F)
@@ -36,11 +47,9 @@ grouplist = as.vector(design_mat[,2])
 # read files in and process data
 celFiles <- list.celfiles(path = file_path, full.names = T)
 data.affy <- ReadAffy(filenames = celFiles)
-data.affy@cdfName = "hgu133plus2hsrefseqcdf"
+data.affy@cdfName = hgu133ahsrefseqcdf
 data.rma <- rma(data.affy)
 data.expr <- exprs(data.rma)
-colnames(data.expr) <- sapply(sapply(colnames(data.expr),strsplit,'_',USE.NAMES = F),head,1,USE.NAMES = F)
-
 # batcheffect
 data.affy@protocolData@data
 # groupName <- colnames(data.expr)
@@ -51,6 +60,10 @@ data.affy@protocolData@data
 # data.expr <- ComBat(dat = data.expr, batch = batchIndex, mean.only = TRUE, mod = cbmod)
 
 #get exprSet
+newcolname <- colnames(data.expr)[sapply(gsm,grep,colnames(data.expr),USE.NAMES = F)]
+data.expr <- data.expr[,newcolname]
+colnames(data.expr) <- gsm
+#colnames(data.expr) <- sapply(sapply(colnames(data.expr),strsplit,'_',USE.NAMES = F),head,1,USE.NAMES = F)
 exprSet <- data.expr[,gsm]
 
 #do limma
@@ -70,14 +83,20 @@ output <- na.omit(tempoutput[!duplicated(tempoutput$SYMBOL),])
 rownames(output) <- output$SYMBOL
 output <- output[,-7]
 colnames(output) <- c("log2FoldChange","AveExpr","t","P.Value","padj","B")
+# output file
+write.table(output,paste0(result_path,'/Different_Expression.txt'),sep = '\t',quote = F)
 
-sigout <- subset(output, abs(log2FoldChange) > 1 & padj < 0.05)
-p <- ggplot(output,aes(log2FoldChange,-log10(padj))) + 
-geom_point(aes(color=ifelse((log2FoldChange > 1 | log2FoldChange < -1) & padj < 0.05, "sign","non-sign")), cex = 1, alpha = 0.3) + 
-scale_colour_manual("significance", values = c("steelblue","red")) +
-labs(title = designname, x = "log2 Fold Change", y = "-log10 adj.P.Val")+
-geom_text(data = sigout, aes(x = log2FoldChange, y=-log10(padj), label = rownames(sigout)), cex = 2, vjust = "inward", hjust = "inward")
-ggsave(paste0(result_path,".png"), p, width = 7, height = 7)
+sigout <- subset(output, abs(log2FoldChange) > logFC_setting & padj < pval_setting)
+upR <- sigout[which(sigout$log2FoldChange > 0), 0]
+downR <- sigout[which(sigout$log2FoldChange < 0), 0]
+write.table(upR, paste0(result_path,'/Upregulated_gene.txt'),sep = '\t',quote = F,col.names = F)
+write.table(downR, paste0(result_path,'/Downregulated_gene.txt'),sep = '\t',quote = F,col.names = F)
 
-write.table(output,result_path,sep = '\t',quote = F)
+volca <- ggplot(output,aes(log2FoldChange,-log10(padj))) + 
+  geom_point(aes(color=ifelse((log2FoldChange > logFC_setting | log2FoldChange < -logFC_setting) & padj < pval_setting, "sign","non-sign")), cex = 1, alpha = 0.3) + 
+  scale_colour_manual("significance", values = c("steelblue","red")) +
+  labs(title = 'Volcano_plot', x = "log2 Fold Change", y = "-log10 adj.P.Val")+
+  geom_text(data = sigout, aes(x = log2FoldChange, y=-log10(padj), label = rownames(sigout)), cex = 1, vjust = "inward", hjust = "inward")
+ggsave(paste0(result_path,"/Volcano_plot.png"), volca, width = 7, height = 7)
+
 
