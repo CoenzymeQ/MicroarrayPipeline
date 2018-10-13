@@ -6,7 +6,7 @@ R with these packages installed: affy, limma, sva, org.Hs.eg.db, ggplot2, [hgu13
 ## Usage
 This is the command line that to excute this script:
 ```
-.\Rscript.exe affy_limma.R data_path design_matrix_path result_path 1 0.05
+Rscript affy_limma.R data_path design_matrix_path result_path 1 0.05
 ```
 *Only affy_limma.R is available now.*  
 
