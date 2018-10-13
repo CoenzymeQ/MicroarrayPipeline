@@ -1,6 +1,10 @@
 # MicroarrayPipeline
 
-The command line to excute this script:
+## require
+R with these packages: affy, limma, sva, org.Hs.eg.db, ggplot2, [hgu133plus2hsrefseqcdf](http://mbni.org/customcdf/22.0.0/refseq.download/hgu133plus2hsrefseqcdf_22.0.0.tar.gz) (Or download from [here](http://brainarray.mbni.med.umich.edu/Brainarray/Database/CustomCDF/22.0.0/refseq.asp))
+
+## Usage
+This is the command line that to excute this script:
 ```
 .\Rscript.exe affy_limma.R data_path design_matrix_path result_path 1 0.05
 ```
