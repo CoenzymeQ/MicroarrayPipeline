@@ -7,7 +7,7 @@ if(!all(required_Packages %in% installed.packages())){
 
 require(affy)
 require(limma)
-require(hgu133ahsrefseqcdf)
+require(hgu133plus2hsrefseqcdf)
 require(org.Hs.eg.db)
 require(sva)
 require(ggplot2)
@@ -25,7 +25,7 @@ rm(list = ls())
 # result_path <- paste0('microarray/result/GSE12056/')
 # logFC_setting = log2(1) #setting log2 fold change
 # pval_setting = 0.1 #setting adj.p.val
-# cdf_name = 'hgu133ahsrefseqcdf'
+# cdf_name = 'hgu133plus2hsrefseqcdf'
 
 args = commandArgs(T)
 file_path = args[1] #data file path
@@ -47,7 +47,7 @@ grouplist = as.vector(design_mat[,2])
 # read files in and process data
 celFiles <- list.celfiles(path = file_path, full.names = T)
 data.affy <- ReadAffy(filenames = celFiles)
-data.affy@cdfName = hgu133ahsrefseqcdf
+data.affy@cdfName = hgu133plus2hsrefseqcdf
 data.rma <- rma(data.affy)
 data.expr <- exprs(data.rma)
 # batcheffect
