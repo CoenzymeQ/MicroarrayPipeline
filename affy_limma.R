@@ -7,7 +7,7 @@ if(!all(required_Packages %in% installed.packages())){
 
 require(affy)
 require(limma)
-require(hgu133plus2hsrefseqcdf)
+# require(hgu133plus2hsrefseqcdf)
 require(org.Hs.eg.db)
 require(sva)
 require(ggplot2)
@@ -31,10 +31,13 @@ args = commandArgs(T)
 file_path = args[1] #data file path
 design_path = args[2] #design matrix path
 result_path = args[3] #result path
-FC_setting = args[4] #setting fold change
-pval_setting = args[5] #setting adj.p.val
+cdf_name = args[4] #cdf names
+FC_setting = args[5] #setting fold change
+pval_setting = args[6] #setting adj.p.val
 FC_setting <- as.numeric(FC_setting)
+pval_setting <- as.numeric(pval_setting)
 logFC_setting <- log2(FC_setting)
+require(cdf_name, character.only = T)
 
 dir.create(result_path)
 
@@ -46,7 +49,7 @@ grouplist = as.vector(design_mat[,2])
 # read files in and process data
 celFiles <- list.celfiles(path = file_path, full.names = T)
 data.affy <- ReadAffy(filenames = celFiles)
-data.affy@cdfName = hgu133plus2hsrefseqcdf
+data.affy@cdfName = cdf_name
 data.rma <- rma(data.affy)
 data.expr <- exprs(data.rma)
 # batcheffect
