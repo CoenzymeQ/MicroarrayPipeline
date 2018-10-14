@@ -2,8 +2,10 @@
 
 ## Requirements
 R with these packages installed: affy, limma, sva, org.Hs.eg.db, ggplot2  
+
 And you are supposed to need a cdf R package:  
 You can download from [here](http://brainarray.mbni.med.umich.edu/Brainarray/Database/CustomCDF/22.0.0/refseq.asp))  
+
 Here are two example:  
 [hgu133plus2hsrefseqcdf](http://mbni.org/customcdf/22.0.0/refseq.download/hgu133plus2hsrefseqcdf_22.0.0.tar.gz)  
 [hgu133a2hsrefseqcdf](http://mbni.org/customcdf/22.0.0/refseq.download/hgu133a2hsrefseqcdf_22.0.0.tar.gz)  
